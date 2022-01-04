@@ -1,8 +1,9 @@
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import SplashScreen from './screens/SplashScreen';
 import {MyTheme} from './screens/theme';
+import HomeScreen from './screens/Home';
+import SplashScreen from './screens/SplashScreen';
 
 const Stack = createNativeStackNavigator();
 export default function App() {
@@ -11,8 +12,10 @@ export default function App() {
       <Stack.Navigator
         screenOptions={{
           headerShown: false,
-        }}>
-        <Stack.Screen name="Home" component={SplashScreen} />
+        }}
+        initialRouteName="SplashScreen">
+        <Stack.Screen name="SplashScreen" component={SplashScreen} />
+        <Stack.Screen name="Home" component={HomeScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

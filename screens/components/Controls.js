@@ -50,7 +50,8 @@ const Controls = ({
     </TouchableOpacity>
     <View style={{width: 20}} />
     {isLoading ? (
-      <Ionicons size={MyIcons.size.large} name="reload-circle-outline" />
+      // <Ionicons size={MyIcons.size.large} name="reload-circle-outline" />
+      <ActivityIndicator size="large" color={MyTheme.colors.text} />
     ) : !paused ? (
       <TouchableOpacity onPress={onPressPause}>
         <Ionicons

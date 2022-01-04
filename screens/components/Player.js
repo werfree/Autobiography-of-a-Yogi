@@ -12,15 +12,20 @@ import TrackPlayer, {
   Event,
   useTrackPlayerEvents,
   RepeatMode,
+  Capability,
+  State,
 } from 'react-native-track-player';
 import PlaylistCard from './PlaylistCard';
+import AsyncStorageLib from '@react-native-async-storage/async-storage';
 
 const Player = props => {
   const tracks = props.tracks;
-  const [pause, setPause] = useState(true);
-
+  const lastPlayed = props.lastPlayed;
+  const [playerState, setPlayerState] = useState({
+    pause: false,
+    isLoading: true,
+  });
   const {position, buffered, duration} = useProgress(1000);
-
   const [state, setState] = useState({
     totalLength: 1,
     currentPosition: 0,
@@ -31,11 +36,6 @@ const Player = props => {
   });
   const [playSpeed, setPlaySpeed] = useState(1);
   const [repeatMode, setRepeatMode] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [volumeDown, setVolumeDown] = useState({
-    time: 100000000,
-    level: 0,
-  });
 
   const [currentTrack, setCurrentTrack] = useState({
     title: '',
@@ -47,42 +47,46 @@ const Player = props => {
     track: 0,
   });
 
-  useTrackPlayerEvents([Event.PlaybackTrackChanged], async event => {
-    if (event.type === Event.PlaybackTrackChanged && event.nextTrack != null) {
-      const track = await TrackPlayer.getCurrentTrack(event.nextTrack);
-      console.log('TC', track);
-      setCurrentTrack({
-        author: 'Paramahansa Yogananda',
-        track: track,
-        ...tracks[track],
-      });
-    }
-  });
+  useTrackPlayerEvents(
+    [Event.PlaybackTrackChanged, Event.PlaybackState],
+    async event => {
+      console.log(event.type, event.state, State);
+      if (
+        event.type === Event.PlaybackTrackChanged &&
+        event.nextTrack != null
+      ) {
+        const track = await TrackPlayer.getCurrentTrack(event.nextTrack);
+        console.log('TC', track);
+        AsyncStorageLib.setItem('lastPlayed', '' + track);
 
-  useEffect(() => {
-    // const down = async () => {
-    if (position > duration) {
-      TrackPlayer.stop();
-      TrackPlayer.setRate(playSpeed);
-      TrackPlayer.setVolume(volumeDown.volume);
-      TrackPlayer.play();
-    }
-    if (position + 3 >= volumeDown.time) {
-      console.log('In', position, volumeDown.time);
-      TrackPlayer.pause();
-      TrackPlayer.setRate(playSpeed);
-      TrackPlayer.setVolume(1);
-      TrackPlayer.play();
-      setVolumeDown({
-        time: 1000000,
-        volume: 1,
-      });
-
-      setIsLoading(false);
-    }
-    //};
-    //down();
-  }, [position, playSpeed, duration, volumeDown]);
+        setCurrentTrack({
+          author: 'Paramahansa Yogananda',
+          track: track,
+          ...tracks[track],
+        });
+      }
+      if (event.type === Event.PlaybackState) {
+        if (event.state === State.Connecting) {
+          setPlayerState({
+            pause: false,
+            isLoading: true,
+          });
+        }
+        if (event.state === State.Paused) {
+          setPlayerState({
+            pause: true,
+            isLoading: false,
+          });
+        }
+        if (event.state === State.Playing || event.state === State.Buffering) {
+          setPlayerState({
+            pause: false,
+            isLoading: false,
+          });
+        }
+      }
+    },
+  );
 
   // Initial Effect
   useEffect(() => {
@@ -93,22 +97,30 @@ const Player = props => {
         waitForBuffer: true,
         stopWithApp: true,
 
+        capabilities: [
+          Capability.Play,
+          Capability.Pause,
+          Capability.Stop,
+          Capability.SkipToNext,
+          Capability.SkipToPrevious,
+          Capability.SeekTo,
+          // TrackPlayer.CAPABILITY_SEEK_TO,
+        ],
         compactCapabilities: [
-          TrackPlayer.CAPABILITY_PLAY,
-          TrackPlayer.CAPABILITY_PAUSE,
-          TrackPlayer.CAPABILITY_STOP,
+          Capability.Play,
+          Capability.Pause,
+          Capability.SeekTo,
           // TrackPlayer.CAPABILITY_SEEK_TO,
         ],
         notificationCapabilities: [
-          TrackPlayer.CAPABILITY_PLAY,
-          TrackPlayer.CAPABILITY_PAUSE,
-          //TrackPlayer.CAPABILITY_STOP,
-          TrackPlayer.CAPABILITY_SKIP_TO_NEXT,
-          TrackPlayer.CAPABILITY_SKIP_TO_PREVIOUS,
+          Capability.Play,
+          Capability.Pause,
+          Capability.SeekTo,
         ],
       }).catch(e => console.error('UpdateOption', e));
 
       await TrackPlayer.add(tracks);
+      await onSkip(lastPlayed);
 
       const track = await TrackPlayer.getCurrentTrack();
       console.log(tracks[track]);
@@ -117,77 +129,48 @@ const Player = props => {
         track,
         ...tracks[track],
       });
-      setIsLoading(false);
     };
     playSetUp();
     return () => {
       TrackPlayer.destroy();
     };
-  }, [tracks]);
+  }, [tracks, lastPlayed]);
+
+  // Listener
 
   const seek = async time => {
-    time = Math.floor(time);
-    console.log('Time', time);
-
-    const volume = await TrackPlayer.getVolume();
-    await TrackPlayer.setVolume(0);
-    if (position > time) {
-      await TrackPlayer.stop();
-    }
-
-    setIsLoading(true);
-    await TrackPlayer.play();
-    await TrackPlayer.setRate(400);
-    setVolumeDown({
-      time,
-      volume,
-    });
-
-    // await TrackPlayer.pause();
-
-    //setIsLoading(false);
-    setPause(false);
+    //await TrackPlayer.play();
+    await TrackPlayer.seekTo(time);
   };
 
   const onBack = async () => {
     console.log('On Back Press');
-    setIsLoading(false);
+
     await TrackPlayer.skipToPrevious();
-    setIsLoading(false);
   };
 
   const onForward = async () => {
     console.log('On Forward Press');
-    setIsLoading(false);
+
     await TrackPlayer.skipToNext().catch(e => console.error(e));
-    setIsLoading(false);
-    // setPause(true);
   };
 
   const onSkip = async index => {
-    console.log('On Skip');
-    setIsLoading(false);
     await TrackPlayer.skip(index).catch(e => console.error(e));
-    setIsLoading(false);
+
     // setPause(true);
   };
 
   const onPause = async () => {
-    setIsLoading(true);
     await TrackPlayer.pause().catch(e => console.error(e));
-    setPause(true);
-    setIsLoading(false);
   };
   const onPlay = async () => {
-    setIsLoading(true);
     await TrackPlayer.play().catch(e => console.error(e));
-    setPause(false);
-    setIsLoading(false);
   };
 
   const changePlaySpeed = async () => {
     let newPlaySpeed = 0;
-    if (playSpeed >= 3) {
+    if (playSpeed >= 2) {
       newPlaySpeed = 1;
     } else {
       newPlaySpeed = playSpeed + 0.25;
@@ -207,7 +190,7 @@ const Player = props => {
           key={index}
           index={index}
           currentTrack={index === currentTrack.track}
-          pause={pause}
+          pause={playerState.pause}
           title={track.title}
           imageUrl={track.imageUrl}
           onPause={onPause}
@@ -227,14 +210,14 @@ const Player = props => {
         <AlbumArt url={currentTrack.imageUrl} />
         <TrackDetails title={currentTrack.title} artist={currentTrack.author} />
         <SeekBar
-          trackLength={currentTrack.duration || 0}
+          trackLength={duration || 0}
           onSlidingStart={async () => {
-            await onPause();
+            await onPlay();
           }}
-          onSeek={async time => {
-            await seek(time);
+          onSeek={time => {
+            seek(time);
           }}
-          currentPosition={position || 0}
+          currentPosition={position}
         />
         <Controls
           onPressRepeat={async () => {
@@ -256,8 +239,8 @@ const Player = props => {
           }}
           onBack={onBack}
           onForward={onForward}
-          paused={pause}
-          isLoading={isLoading}
+          paused={playerState.pause}
+          isLoading={playerState.isLoading}
           playSpeed={playSpeed}
           changePlaySpeed={changePlaySpeed}
           backDisable={currentTrack.track === 0}
