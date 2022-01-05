@@ -83,7 +83,7 @@ const Controls = ({
         <MaterialCommunityIcons
           style={styles.controlButtons}
           name="repeat"
-          size={MyIcons.size.medium}
+          size={MyIcons.size.small}
         />
       ) : (
         <MaterialCommunityIcons
