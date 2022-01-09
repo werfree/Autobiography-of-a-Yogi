@@ -8,7 +8,6 @@ export const MyTheme = {
     text: 'rgba(255,255,255,0.5)',
     //background: 'rgb(33,36,40)',
     background: 'rgb(30,30,35)',
-    elevation: 'rgb(22,22,22)',
   },
 };
 

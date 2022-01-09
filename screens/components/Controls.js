@@ -34,6 +34,7 @@ const Controls = ({
       <Ionicons
         style={styles.controlButtons}
         name="speedometer-outline"
+        color={MyTheme.colors.text}
         size={MyIcons.size.small}
       />
       <Text style={styles.playSpeedText}>{playSpeed}x</Text>
@@ -44,6 +45,7 @@ const Controls = ({
       <Ionicons
         style={styles.controlButtons}
         //name="caret-back-circle-outline"
+        color={MyTheme.colors.text}
         name="ios-play-skip-back-outline"
         size={MyIcons.size.medium}
       />
@@ -56,6 +58,7 @@ const Controls = ({
       <TouchableOpacity onPress={onPressPause}>
         <Ionicons
           //style={styles.controlButtons}
+          color={MyTheme.colors.text}
           name="pause-circle-outline"
           size={MyIcons.size.large}
         />
@@ -64,6 +67,7 @@ const Controls = ({
       <TouchableOpacity onPress={onPressPlay}>
         <Ionicons
           //style={styles.controlButtons}
+          color={MyTheme.colors.text}
           name="play-circle-outline"
           size={MyIcons.size.large}
         />
@@ -73,6 +77,7 @@ const Controls = ({
     <TouchableOpacity onPress={onForward} disabled={forwardDisabled}>
       <Ionicons
         style={styles.controlButtons}
+        color={MyTheme.colors.text}
         name="ios-play-skip-forward-outline"
         size={MyIcons.size.medium}
       />
@@ -83,12 +88,14 @@ const Controls = ({
         <MaterialCommunityIcons
           style={styles.controlButtons}
           name="repeat"
+          color={MyTheme.colors.text}
           size={MyIcons.size.small}
         />
       ) : (
         <MaterialCommunityIcons
           style={styles.controlButtons}
           name="repeat-off"
+          color={MyTheme.colors.text}
           size={MyIcons.size.small}
         />
       )}

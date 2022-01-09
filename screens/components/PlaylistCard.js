@@ -45,7 +45,7 @@ export default function PlaylistCard({
           style={styles.imageBackground}
         />
         <View style={styles.textContainer}>
-          <Text>
+          <Text style={styles.text}>
             {index}: {title}
           </Text>
         </View>
@@ -77,6 +77,9 @@ const styles = StyleSheet.create({
   imageBackground: {
     flex: 2,
     height: 35,
+  },
+  text: {
+    color: MyTheme.colors.text,
   },
   textContainer: {
     flex: 8,

@@ -14,6 +14,7 @@ import {
 import {SafeAreaView} from 'react-native-safe-area-context';
 import MyStatusBar from './components/StatusBar';
 import Logo from './logo/logo.png';
+import {MyTheme} from './theme';
 
 export default function SplashScreen({navigation}) {
   NetInfo.addEventListener(state => {
@@ -74,6 +75,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     textAlign: 'center',
+    color: MyTheme.colors.text,
     margin: 14,
     fontSize: 15,
   },
@@ -81,6 +83,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     textAlign: 'center',
+    color: MyTheme.colors.text,
     margin: 14,
     fontSize: 12,
   },
